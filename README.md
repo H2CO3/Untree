@@ -10,6 +10,11 @@ Usage:
  * A sample tree is provided in `general_tree.png`.
  * For other images, you will likely need to hand-tune the search parameters in `main()`.
 
+Dependencies:
+------------
+ * `C++14`
+ * `libpng ≥ 1.6`
+
 TODO:
 ----
  * Generate actual tree structure (currently, only an adjacency map is printed)

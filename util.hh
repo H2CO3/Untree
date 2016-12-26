@@ -75,7 +75,7 @@ std::vector<Range> filter_map(
     Transform xform
 ) {
     std::vector<Range> result;
-    result.reserve(c.size());
+    result.reserve(cont_size(c));
 
     for (const auto &elem : c) {
         if (predicate(elem)) {
