@@ -4,6 +4,10 @@ Untree, a visual tree parser
 Untree is a program for generating machine-readable, structured
 data from a tree depicted in an image.
 
+Explanation
+-----------
+A detailed explanation of the algorithm can be found on [my blog](http://h2co3.org/blog/index.php/2016/12/26/untree-or-i-will-get-my-data-anyway/).
+
 Usage:
 -----
  * `./untree input_image.png`
@@ -17,9 +21,9 @@ Dependencies:
 
 TODO:
 ----
- * Generate actual tree structure (currently, only an adjacency map is printed)
  * Automatically (programmatically) estimate search parameters based on input image
- * Write up a detailed explanation about the algorithm
+ * Preprocess arbitrary images of trees in order to obtain a nice, binarized image
+   that only contains pixels from the tree structure itself (no captions, etc.)
  * Allow users to specify which node should be the root
  * Make it into a library (involves namespacing/better names in general, etc.)
  * Accept more image formats as input besides PNG, e.g. JPG, ...

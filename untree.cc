@@ -492,7 +492,8 @@ int main(int argc, char *argv[]) {
     std::printf("\n");
 
     tree->traverse([](Index index, unsigned depth) {
-        std::printf("%*s\n", int(12 + 2 * depth), index.to_string().c_str());
+        auto str = index.to_string();
+        std::printf("%*s\n", int(str.size() + 2 * depth), str.c_str());
     });
 
     return 0;
