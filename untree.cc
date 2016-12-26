@@ -8,6 +8,7 @@
 // Licensed under the 2-clause BSD License
 //
 
+#include <array>
 #include <queue>
 #include <unordered_map>
 #include <unordered_set>
@@ -299,7 +300,7 @@ static std::vector<Index> indices_by_collapsing_islands(
     );
 }
 
-using AdjacencyMap = std::unordered_map<Index, std::vector<Index>>;
+using AdjacencyMap = std::unordered_map<Index, std::unordered_set<Index>>;
 
 static AdjacencyMap adjacency_map_from_points(
     const GrayscaleImage &input_img,
@@ -356,8 +357,10 @@ static AdjacencyMap adjacency_map_from_points(
                     not contains(visited_indices, index) // only traverse each node once
                 ) {
                     // insert into adjacency map symmetrically
-                    adjacency_map[index].push_back(start_index);
-                    adjacency_map[start_index].push_back(index);
+                    bool ok1, ok2;
+                    std::tie(std::ignore, ok1) = adjacency_map[index].insert(start_index);
+                    std::tie(std::ignore, ok2) = adjacency_map[start_index].insert(index);
+                    assert(ok1 && ok2 && "duplicate node found");
 
                     // mark node as already visited
                     visited_indices.insert(start_index);
@@ -382,8 +385,75 @@ static AdjacencyMap adjacency_map_from_points(
     return adjacency_map;
 }
 
-// Returns the adjacency map of the tree that is recognized in the image
-static AdjacencyMap adjacency_map_from_image(
+
+struct TreeNode {
+    Index index;
+    std::array<std::unique_ptr<TreeNode>, 2> children;
+
+    TreeNode(Index p_index) : index(p_index) {}
+
+    TreeNode *left() {
+        return children[0].get();
+    }
+
+    TreeNode *right() {
+        return children[1].get();
+    }
+
+    const TreeNode *left() const {
+        return children[0].get();
+    }
+
+    const TreeNode *right() const {
+        return children[1].get();
+    }
+
+    void add_child(std::unique_ptr<TreeNode> child) {
+        // find first empty slot
+        auto it = std::find(children.begin(), children.end(), nullptr);
+        assert(it != children.end() && "no room left for adding child nodes");
+        *it = std::move(child);
+    }
+
+    template<typename Fn>
+    void traverse(Fn callback) const {
+        traverse(callback, 0);
+    }
+
+    template<typename Fn>
+    void traverse(Fn callback, unsigned depth) const {
+        callback(index, depth);
+
+        for (auto &child : children) {
+            if (child) {
+                child->traverse(callback, depth + 1);
+            }
+        }
+    }
+};
+
+// This destroys the adjacency map by erasing each
+// edge after it has been traversed.
+std::unique_ptr<TreeNode> tree_from_adjacency_map(
+    AdjacencyMap &adj_map,
+    Index root
+) {
+    auto node = std::make_unique<TreeNode>(root);
+
+    for (auto it = adj_map[root].begin(); it != adj_map[root].end(); ) {
+        auto neighbor = *it;
+
+        it = adj_map[root].erase(it);
+        adj_map[neighbor].erase(root);
+
+        node->add_child(tree_from_adjacency_map(adj_map, neighbor));
+    }
+
+    return node;
+}
+
+// Returns the tree that is recognized in the image
+static std::unique_ptr<TreeNode> tree_from_image(
     const GrayscaleImage &img,
     const SearchParams &params
 ) {
@@ -397,10 +467,14 @@ static AdjacencyMap adjacency_map_from_image(
 
     assert(branches.size() + 2 == leaves.size() && "input is not a binary tree");
 
+    #ifndef NDEBUG
     std::printf("# of branches: %zu\n", branches.size());
     std::printf("# of leaves:   %zu\n", leaves.size());
+    #endif
 
-    return adjacency_map_from_points(img, branches, leaves);
+    auto adj_map = adjacency_map_from_points(img, branches, leaves);
+
+    return tree_from_adjacency_map(adj_map, leaves[0]);
 }
 
 int main(int argc, char *argv[]) {
@@ -413,17 +487,13 @@ int main(int argc, char *argv[]) {
         47000,
     };
 
-    const auto adjacency_map = adjacency_map_from_image(img, params);
+    const auto tree = tree_from_image(img, params);
 
     std::printf("\n");
 
-    for (auto &kv : adjacency_map) {
-        std::printf("%s:", kv.first.to_string().c_str());
-        for (auto index : kv.second) {
-            std::printf("  %s", index.to_string().c_str());
-        }
-        std::printf("\n");
-    }
+    tree->traverse([](Index index, unsigned depth) {
+        std::printf("%*s\n", int(12 + 2 * depth), index.to_string().c_str());
+    });
 
     return 0;
 }

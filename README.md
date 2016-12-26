@@ -20,6 +20,7 @@ TODO:
  * Generate actual tree structure (currently, only an adjacency map is printed)
  * Automatically (programmatically) estimate search parameters based on input image
  * Write up a detailed explanation about the algorithm
+ * Allow users to specify which node should be the root
  * Make it into a library (involves namespacing/better names in general, etc.)
  * Accept more image formats as input besides PNG, e.g. JPG, ...
 
