@@ -333,8 +333,6 @@ static AdjacencyMap adjacency_map_from_points(
     // Spin until all nodes have been visited.
     // (In a tree of N nodes, there are N - 1 edges.)
     while (visited_indices.size() < points.size() - 1) {
-        auto img = input_img;
-
         // Array ('set') of coordinates where flood fill starts.
         // We want to start at current leaves --- nodes that
         // have only one adjacent neighbor.
@@ -348,6 +346,8 @@ static AdjacencyMap adjacency_map_from_points(
 
         // flood fill starting from the leaves we just enumerated
         for (auto start_index : start_indices) {
+            auto img = input_img;
+
             flood_fill_binary_image(img, start_index, [&](auto index) {
                 if (
                     index != start_index // a node is not a neighbor of itself
