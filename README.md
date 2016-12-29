@@ -24,6 +24,7 @@ TODO:
  * Automatically (programmatically) estimate search parameters based on input image
  * Preprocess arbitrary images of trees in order to obtain a nice, binarized image
    that only contains pixels from the tree structure itself (no captions, etc.)
+ * OCR description texts and associate them with leaves
  * Allow users to specify which node should be the root
  * Make it into a library (involves namespacing/better names in general, etc.)
  * Accept more image formats as input besides PNG, e.g. JPG, ...
